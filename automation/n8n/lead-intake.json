@@ -1,0 +1,76 @@
+{
+  "name": "Lead Intake - Better Bodies",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "lead-intake",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const lead = item.json;\nlead.lead_id = lead.lead_id || $uuid();\nlead.created_at = new Date().toISOString();\nlead.status = 'NEW';\nlead.stage = 'HOT';\nreturn item;"
+      },
+      "name": "Prepare Lead",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "append",
+        "sheetId": "={{$env.GOOGLE_SHEET_ID}}",
+        "range": "LEADS!A1",
+        "options": {},
+        "valueInputMode": "USER_ENTERED",
+        "data": "={{[item.json.lead_id, item.json.created_at, item.json.source, item.json.full_name, item.json.phone_e164, item.json.whatsapp_opt_in, item.json.status, item.json.stage, '', '', item.json.assigned_to, item.json.preferred_time, item.json.notes, item.json.package_interest, '', '', '', 'NO', item.json.consent_timestamp]}}"
+      },
+      "name": "Append Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "item.json.message = `Hi ${item.json.full_name || 'there'}, thanks for reaching Better Bodies Gym. We can book a quick tour. When can you come in? Reply with a day/time. Reply STOP to opt out.`;\nreturn item;"
+      },
+      "name": "Build Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{$env.TWILIO_WHATSAPP_FROM}}",
+        "to": "={{item.json.phone_e164}}",
+        "message": "={{item.json.message}}"
+      },
+      "name": "Send WhatsApp (Twilio)",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1180, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Prepare Lead", "type": "main", "index": 0 }]]
+    },
+    "Prepare Lead": {
+      "main": [[{ "node": "Append Lead", "type": "main", "index": 0 }]]
+    },
+    "Append Lead": {
+      "main": [[{ "node": "Build Message", "type": "main", "index": 0 }]]
+    },
+    "Build Message": {
+      "main": [[{ "node": "Send WhatsApp (Twilio)", "type": "main", "index": 0 }]]
+    }
+  }
+}

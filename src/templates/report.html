@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Better Bodies Gym - Weekly KPI Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; color: #111; }
+    h1 { margin-bottom: 0; }
+    .meta { color: #555; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
+    .card { border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 6px; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <h1>Better Bodies Gym — Weekly KPI Report</h1>
+  <div class="meta">Week of {{week_start}} to {{week_end}}</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Lead Volume</h3>
+      <p>Total leads: {{total_leads}}</p>
+      <p>Facebook leads: {{facebook_leads}}</p>
+      <p>Walk-ins: {{walkin_leads}}</p>
+    </div>
+    <div class="card">
+      <h3>Response & Booking</h3>
+      <p>% contacted under 2 min: {{sla_percent}}</p>
+      <p>Booked visits: {{booked_visits}}</p>
+      <p>Show rate: {{show_rate}}</p>
+    </div>
+    <div class="card">
+      <h3>Outcomes</h3>
+      <p>Joined: {{joined_count}}</p>
+      <p>Closed: {{closed_count}}</p>
+      <p>Cold leads: {{cold_count}}</p>
+    </div>
+    <div class="card">
+      <h3>Top 10 Cold Leads</h3>
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Phone</th><th>Last Contact</th></tr>
+        </thead>
+        <tbody>
+          {{cold_leads_table}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
