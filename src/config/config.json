@@ -1,0 +1,53 @@
+{
+  "DRY_RUN": true,
+  "GOOGLE_SHEETS_ID": "REPLACE_WITH_SHEET_ID",
+  "WHATSAPP_PROVIDER": "twilio",
+  "TWILIO_ACCOUNT_SID": "REPLACE",
+  "TWILIO_AUTH_TOKEN": "REPLACE",
+  "TWILIO_FROM": "REPLACE",
+  "WHATSAPP_PHONE_NUMBER_ID": "REPLACE",
+  "WHATSAPP_ACCESS_TOKEN": "REPLACE",
+  "SMTP_HOST": "smtp.gmail.com",
+  "SMTP_PORT": 587,
+  "SMTP_SECURE": false,
+  "SMTP_USER": "REPLACE",
+  "SMTP_PASS": "REPLACE",
+  "REPORT_FROM": "reports@betterbodiesgym.co.za",
+  "REPORT_RECIPIENTS": ["lebo@betterbodiesgym.co.za", "frontdesk@betterbodiesgym.co.za"],
+  "QUIET_HOURS_SEND_TIME": "08:00",
+  "HOURS": [
+    { "day": 1, "open": "06:00", "close": "20:00" },
+    { "day": 2, "open": "06:00", "close": "20:00" },
+    { "day": 3, "open": "06:00", "close": "20:00" },
+    { "day": 4, "open": "06:00", "close": "20:00" },
+    { "day": 5, "open": "06:00", "close": "20:00" },
+    { "day": 6, "open": "06:00", "close": "13:00" },
+    { "day": 0, "closed": true }
+  ],
+  "CADENCE": [
+    { "name": "instant", "type": "delay_hours", "value": 0 },
+    { "name": "followup_1", "type": "delay_hours", "value": 2 },
+    { "name": "followup_2", "type": "next_day_time", "offsetDays": 1, "hour": 10, "minute": 0 },
+    { "name": "followup_3", "type": "next_day_time", "offsetDays": 3, "hour": 10, "minute": 0 },
+    { "name": "followup_4", "type": "next_day_time", "offsetDays": 5, "hour": 10, "minute": 0 },
+    { "name": "final", "type": "next_day_time", "offsetDays": 7, "hour": 10, "minute": 0 }
+  ],
+  "PACKAGES": [
+    { "code": "12M", "label": "12 months", "price": 279 },
+    { "code": "6M", "label": "6 months", "price": 349 },
+    { "code": "36M", "label": "36 months", "price": 199 },
+    { "code": "M2M", "label": "Month-to-month", "price": 450 }
+  ],
+  "JOINING_FEE": 250,
+  "MESSAGES": {
+    "instant_reply": "Hi {{name}}, thanks for reaching Better Bodies Gym. We can book a quick tour. When can you come in? Reply with a day/time. Reply STOP to opt out.",
+    "followup_1": "Just checking in — would you like to pop in for a quick visit this week? Reply with a day/time.",
+    "followup_2": "We can show you the gym and membership options in 10 minutes. What day suits you?",
+    "followup_3": "Still keen to visit? Share a day/time and we’ll book it.",
+    "followup_4": "Last call this week — want to come in? We’re open Mon–Sat.",
+    "final": "We’ll close this chat for now. If you still want to visit, reply anytime.",
+    "price_list": "Monthly options: 36M R199 pm, 12M R279 pm, 6M R349 pm, M2M R450 pm. Joining fee R250 + pro-rated first month. Want to come in for a tour?",
+    "location": "We are at [ADD GYM ADDRESS]. Want to book a quick visit?",
+    "opt_out_confirm": "You’re opted out. If you change your mind, reply START."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "Lead Follow-ups - Better Bodies",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [{ "mode": "everyHour" }]
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEET_ID}}",
+        "range": "LEADS!A2:S"
+      },
+      "name": "Load Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const now = new Date();\nconst results = [];\nfor (const row of items) {\n  const status = row.json[6];\n  const stage = row.json[7];\n  const nextAction = row.json[9];\n  if (status === 'CONTACTED' && stage !== 'COLD' && nextAction && new Date(nextAction) <= now) {\n    row.json.message = 'Just checking in — would you like to pop in for a quick visit this week? Reply with a day/time.';\n    results.push(row);\n  }\n}\nreturn results;"
+      },
+      "name": "Select Due Leads",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "={{$env.TWILIO_WHATSAPP_FROM}}",
+        "to": "={{item.json[4]}}",
+        "message": "={{item.json.message}}"
+      },
+      "name": "Send WhatsApp (Twilio)",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [[{ "node": "Load Leads", "type": "main", "index": 0 }]]
+    },
+    "Load Leads": {
+      "main": [[{ "node": "Select Due Leads", "type": "main", "index": 0 }]]
+    },
+    "Select Due Leads": {
+      "main": [[{ "node": "Send WhatsApp (Twilio)", "type": "main", "index": 0 }]]
+    }
+  }
+}

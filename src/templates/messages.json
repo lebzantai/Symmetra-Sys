@@ -1,0 +1,12 @@
+{
+  "instant_reply": "Hi {{name}}, thanks for reaching Better Bodies Gym. We can book a quick tour. When can you come in? Reply with a day/time. Reply STOP to opt out.",
+  "followup_1": "Just checking in — would you like to pop in for a quick visit this week? Reply with a day/time.",
+  "followup_2": "We can show you the gym and membership options in 10 minutes. What day suits you?",
+  "followup_3": "Still keen to visit? Share a day/time and we’ll book it.",
+  "followup_4": "Last call this week — want to come in? We’re open Mon–Sat.",
+  "final": "We’ll close this chat for now. If you still want to visit, reply anytime.",
+  "price_list": "Monthly options: 36M R199 pm, 12M R279 pm, 6M R349 pm, M2M R450 pm. Joining fee R250 + pro-rated first month. Want to come in for a tour?",
+  "location": "We are at [ADD GYM ADDRESS]. Want to book a quick visit?",
+  "opt_out_confirm": "You’re opted out. If you change your mind, reply START.",
+  "booking_confirm": "Booked! We’ll see you at {{visit_time}}. Please bring your ID."
+}

@@ -1,0 +1,23 @@
+{
+  "name": "symmetra-sys-automation",
+  "version": "1.0.0",
+  "description": "Symmetra Systems v1 – Better Bodies Gym Lead-to-Visit Automation",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "cli": "node scripts/cli.js",
+    "init:sheet": "node scripts/init_sheet.js",
+    "test": "node --test tests/*.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.4",
+    "express": "^4.19.2",
+    "googleapis": "^140.0.0",
+    "nodemailer": "^6.9.14",
+    "puppeteer": "^23.1.1",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
