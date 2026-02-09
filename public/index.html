@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Symmetra Systems v1 – Better Bodies Gym</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+        background: #0b0b0d;
+        color: #f5f5f7;
+      }
+      body {
+        margin: 0;
+        padding: 40px 16px 80px;
+        display: flex;
+        justify-content: center;
+      }
+      .card {
+        max-width: 880px;
+        width: 100%;
+        background: #141418;
+        border: 1px solid #2b2b33;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+      }
+      p {
+        margin: 8px 0;
+        color: #c9c9d1;
+      }
+      ul {
+        margin: 16px 0;
+        padding-left: 20px;
+        color: #e7e7ee;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #1c1c24;
+        border: 1px solid #2f2f3a;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+      }
+      .links {
+        display: grid;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      a {
+        color: #8bdcff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        background: #1d1d24;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <span class="pill">Symmetra Systems v1</span>
+      <h1>Better Bodies Gym – Lead-to-Visit Automation</h1>
+      <p>
+        This deployment hosts the automation blueprint. The operational docs, templates,
+        and workflows live in the repository. Use the links below to get started.
+      </p>
+      <ul>
+        <li>Configure credentials, WhatsApp provider, and automation path.</li>
+        <li>Initialize Google Sheets with the provided schema and validations.</li>
+        <li>Import the n8n or Make.com workflows and test with DRY_RUN.</li>
+      </ul>
+      <div class="links">
+        <a href="/docs/CONFIG.md">Setup guide (CONFIG)</a>
+        <a href="/docs/RUNBOOK.md">Front desk runbook</a>
+        <a href="/docs/SHEETS_TEMPLATE.md">Google Sheets template</a>
+        <a href="/docs/PHASE2_ITENSITY.md">Phase 2 Itensity integration</a>
+      </div>
+      <p>
+        Local server: <code>npm start</code> (webhooks on <code>/webhook/*</code>)
+      </p>
+    </main>
+  </body>
+</html>
