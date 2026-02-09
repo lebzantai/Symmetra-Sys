@@ -1,0 +1,59 @@
+{
+  "name": "Lead Follow-up Cadence",
+  "nodes": [
+    {
+      "parameters": {
+        "cronExpression": "0 */30 * * * *"
+      },
+      "id": "Cron",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "range": "LEADS!A:Z",
+        "options": {}
+      },
+      "id": "Read Leads",
+      "name": "Read Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const now = new Date();\nconst due = items.filter(i => i.json.status === 'CONTACTED' && i.json.next_action_at && new Date(i.json.next_action_at) <= now);\nreturn due;"
+      },
+      "id": "Filter Due",
+      "name": "Filter Due",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [780, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(i => ({ json: { phone: i.json.phone_e164, message: 'Follow-up message' }}));"
+      },
+      "id": "Send WhatsApp",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1040, 300]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [[{ "node": "Read Leads", "type": "main", "index": 0 }]]
+    },
+    "Read Leads": {
+      "main": [[{ "node": "Filter Due", "type": "main", "index": 0 }]]
+    },
+    "Filter Due": {
+      "main": [[{ "node": "Send WhatsApp", "type": "main", "index": 0 }]]
+    }
+  }
+}

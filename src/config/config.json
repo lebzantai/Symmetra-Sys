@@ -1,0 +1,53 @@
+{
+  "business": {
+    "name": "Better Bodies Gym",
+    "timezone": "Africa/Johannesburg",
+    "address": "<ADD_GYM_ADDRESS>",
+    "whatsapp_business_number": "<WHATSAPP_NUMBER>"
+  },
+  "hours": {
+    "monday": ["06:00", "20:00"],
+    "tuesday": ["06:00", "20:00"],
+    "wednesday": ["06:00", "20:00"],
+    "thursday": ["06:00", "20:00"],
+    "friday": ["06:00", "20:00"],
+    "saturday": ["06:00", "13:00"],
+    "sunday": []
+  },
+  "quiet_hours": {
+    "queue_outside_hours": true,
+    "send_next_open_time": "08:00"
+  },
+  "lead_sources": ["WALK_IN", "FACEBOOK"],
+  "statuses": ["NEW", "CONTACTED", "BOOKED", "CLOSED"],
+  "stages": ["HOT", "WARM", "COLD"],
+  "packages": [
+    { "code": "12M", "label": "12 months", "price_pm": 279 },
+    { "code": "6M", "label": "6 months", "price_pm": 349 },
+    { "code": "36M", "label": "36 months", "price_pm": 199 },
+    { "code": "M2M", "label": "Month-to-month", "price_pm": 450 }
+  ],
+  "joining_fee": 250,
+  "pro_rated_fee_note": "Pro-rated fee applies based on start date",
+  "follow_up_cadence": [
+    { "offset": "PT0M", "label": "instant" },
+    { "offset": "PT2H", "label": "follow_up_1" },
+    { "offset": "P1D", "time": "10:00", "label": "follow_up_2" },
+    { "offset": "P3D", "time": "10:00", "label": "follow_up_3" },
+    { "offset": "P5D", "time": "10:00", "label": "follow_up_4" },
+    { "offset": "P7D", "time": "10:00", "label": "final_follow_up" }
+  ],
+  "cold_stage_after_final": true,
+  "assignments": {
+    "primary": "LEBO",
+    "secondary": "FRONT_DESK"
+  },
+  "reporting": {
+    "weekly_email_day": "monday",
+    "weekly_email_time": "07:00",
+    "dashboard_sheet": "DASHBOARD",
+    "leads_sheet": "LEADS",
+    "lookups_sheet": "LOOKUPS"
+  },
+  "dry_run": false
+}

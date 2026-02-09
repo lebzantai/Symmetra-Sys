@@ -1,0 +1,68 @@
+{
+  "name": "Weekly KPI Report",
+  "nodes": [
+    {
+      "parameters": {
+        "cronExpression": "0 0 7 * * 1"
+      },
+      "id": "Cron",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "range": "LEADS!A:Z",
+        "options": {}
+      },
+      "id": "Read Leads",
+      "name": "Read Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { html: '<html><body>Weekly Report</body></html>' }}];"
+      },
+      "id": "Render HTML",
+      "name": "Render HTML",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [780, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{$env.REPORT_FROM}}",
+        "toEmail": "={{$env.REPORT_TO}}",
+        "subject": "Weekly Lead Report",
+        "text": "Please see attached report.",
+        "attachments": [
+          {
+            "binaryPropertyName": "data",
+            "fileName": "weekly-report.pdf"
+          }
+        ]
+      },
+      "id": "Send Email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [1040, 300]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [[{ "node": "Read Leads", "type": "main", "index": 0 }]]
+    },
+    "Read Leads": {
+      "main": [[{ "node": "Render HTML", "type": "main", "index": 0 }]]
+    },
+    "Render HTML": {
+      "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
+    }
+  }
+}

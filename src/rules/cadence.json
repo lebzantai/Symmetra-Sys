@@ -1,0 +1,15 @@
+{
+  "quiet_hours": {
+    "queue_outside_hours": true,
+    "send_next_open_time": "08:00"
+  },
+  "stop_conditions": ["BOOKED", "CLOSED", "OPTOUT"],
+  "cadence": [
+    { "label": "instant", "offset": "PT0M" },
+    { "label": "follow_up_1", "offset": "PT2H" },
+    { "label": "follow_up_2", "offset": "P1D", "time": "10:00" },
+    { "label": "follow_up_3", "offset": "P3D", "time": "10:00" },
+    { "label": "follow_up_4", "offset": "P5D", "time": "10:00" },
+    { "label": "final_follow_up", "offset": "P7D", "time": "10:00", "stage_after": "COLD" }
+  ]
+}

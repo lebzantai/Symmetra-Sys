@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Weekly Lead Report</title>
+    <style>
+      body { font-family: Arial, sans-serif; color: #111; margin: 24px; }
+      h1, h2 { margin: 0 0 12px 0; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background: #f4f4f4; }
+      .kpi { display: flex; gap: 12px; margin-bottom: 20px; }
+      .kpi .card { border: 1px solid #ddd; padding: 12px; flex: 1; }
+      .muted { color: #666; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Better Bodies Gym – Weekly Lead Report</h1>
+    <p class="muted">Week of {{week_start}} – {{week_end}}</p>
+
+    <div class="kpi">
+      <div class="card"><strong>Leads</strong><br />{{total_leads}}</div>
+      <div class="card"><strong>Booked Visits</strong><br />{{booked_visits}}</div>
+      <div class="card"><strong>Show Rate</strong><br />{{show_rate}}%</div>
+      <div class="card"><strong>Joined</strong><br />{{joined}}</div>
+    </div>
+
+    <h2>Leads by Source</h2>
+    <table>
+      <thead>
+        <tr><th>Source</th><th>Count</th></tr>
+      </thead>
+      <tbody>
+        {{leads_by_source_rows}}
+      </tbody>
+    </table>
+
+    <h2>Top 10 Cold Leads</h2>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Last Contact</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        {{cold_leads_rows}}
+      </tbody>
+    </table>
+  </body>
+</html>

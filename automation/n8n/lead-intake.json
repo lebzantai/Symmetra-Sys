@@ -1,0 +1,63 @@
+{
+  "name": "Lead Intake - Facebook + Walk-in",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "responseMode": "onReceived"
+      },
+      "id": "Webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = items[0].json;\nreturn [{ json: {\n  lead_id: data.lead_id || $uuid(),\n  created_at: new Date().toISOString(),\n  source: data.source || 'FACEBOOK',\n  full_name: data.full_name || 'Unknown',\n  phone_e164: data.phone_e164 || data.phone || '',\n  status: 'NEW',\n  stage: 'HOT',\n  assigned_to: 'LEBO'\n}}];"
+      },
+      "id": "Normalize",
+      "name": "Normalize",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "range": "LEADS!A:Z",
+        "options": {},
+        "valueInputMode": "USER_ENTERED",
+        "dataToSend": "autoMapInputData"
+      },
+      "id": "Append Lead",
+      "name": "Append Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [780, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { message: 'Send WhatsApp instant reply', phone: $json.phone_e164 }}];"
+      },
+      "id": "WhatsApp Stub",
+      "name": "WhatsApp Stub",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1040, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Normalize", "type": "main", "index": 0 }]]
+    },
+    "Normalize": {
+      "main": [[{ "node": "Append Lead", "type": "main", "index": 0 }]]
+    },
+    "Append Lead": {
+      "main": [[{ "node": "WhatsApp Stub", "type": "main", "index": 0 }]]
+    }
+  }
+}
