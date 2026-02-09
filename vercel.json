@@ -1,9 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "public/index.html", "use": "@vercel/static" },
-    { "src": "public/docs/**", "use": "@vercel/static" }
-  ],
+  "buildCommand": "echo 'static build'",
+  "outputDirectory": "public",
   "routes": [
     { "src": "/docs/(.*)", "dest": "/docs/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
