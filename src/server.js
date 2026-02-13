@@ -151,6 +151,14 @@ app.post("/webhooks/inbound", async (req, res) => {
   }
 });
 
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    service: "symmetra-sys-automation",
+    status: "ok",
+    endpoints: ["/health", "/webhooks/lead", "/webhooks/inbound", "/users/:userId/access-check"]
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
