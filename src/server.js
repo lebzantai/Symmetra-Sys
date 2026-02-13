@@ -10,6 +10,12 @@ const { applyInboundRules } = require("./rules");
 const app = express();
 app.use(express.json());
 
+app.use((req, _res, next) => {
+  const authenticatedUserId = req.get("x-user-id");
+  req.user = authenticatedUserId ? { id: authenticatedUserId } : null;
+  next();
+});
+
 const configPath = path.join(__dirname, "config", "config.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
@@ -43,6 +49,20 @@ async function logEvent(event) {
   const row = [new Date().toISOString(), event.type, event.lead_id, event.payload_hash];
   await appendLogRow(config.GOOGLE_SHEETS_ID, row);
 }
+
+function ensureUserAccess(req, res, next) {
+  const userId = req.params.userId || req.body.userId;
+
+  if (!req.user || userId !== req.user.id) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  return next();
+}
+
+app.get("/users/:userId/access-check", ensureUserAccess, (_req, res) => {
+  return res.status(200).json({ status: "ok" });
+});
 
 app.post("/webhooks/lead", async (req, res) => {
   try {
@@ -136,6 +156,11 @@ app.get("/health", (_req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Symmetra Systems automation listening on ${port}`);
-});
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Symmetra Systems automation listening on ${port}`);
+  });
+}
+
+module.exports = { app, ensureUserAccess };
