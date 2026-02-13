@@ -47,7 +47,7 @@ function buildLeadRow(lead) {
 
 async function logEvent(event) {
   const row = [new Date().toISOString(), event.type, event.lead_id, event.payload_hash];
-  await appendLogRow(config.GOOGLE_SHEETS_ID, row);
+  await appendLogRow(config.GOOGLE_SHEETS_ID, row, { dryRun: config.DRY_RUN, allowFallbackOnError: true });
 }
 
 function ensureUserAccess(req, res, next) {
@@ -96,7 +96,7 @@ app.post("/webhooks/lead", async (req, res) => {
       consent_timestamp: payload.consent_timestamp || new Date().toISOString()
     };
 
-    await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead));
+    await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead), { dryRun: config.DRY_RUN, allowFallbackOnError: true });
     await logEvent({ type: "lead_created", lead_id: lead.lead_id, payload_hash: payloadHash });
 
     if (lead.whatsapp_opt_in === "YES") {
