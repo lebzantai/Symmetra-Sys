@@ -115,6 +115,13 @@ app.post("/webhooks/lead", async (req, res) => {
   }
 });
 
+app.get("/webhooks/lead", (_req, res) => {
+  return res.status(405).json({
+    error: "Method Not Allowed",
+    message: "Use POST /webhooks/lead with a JSON payload."
+  });
+});
+
 app.post("/webhooks/inbound", async (req, res) => {
   try {
     const { lead_id, message } = req.body;
@@ -151,6 +158,13 @@ app.post("/webhooks/inbound", async (req, res) => {
   }
 });
 
+app.get("/webhooks/inbound", (_req, res) => {
+  return res.status(405).json({
+    error: "Method Not Allowed",
+    message: "Use POST /webhooks/inbound with a JSON payload."
+  });
+});
+
 app.get("/", (_req, res) => {
   res.status(200).json({
     service: "symmetra-sys-automation",
@@ -161,6 +175,15 @@ app.get("/", (_req, res) => {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
+});
+
+app.use((req, res) => {
+  return res.status(404).json({
+    error: "Not Found",
+    method: req.method,
+    path: req.originalUrl,
+    hint: "Check GET / for available endpoints."
+  });
 });
 
 const port = process.env.PORT || 3000;
