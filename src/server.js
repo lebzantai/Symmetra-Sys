@@ -10,6 +10,12 @@ const { applyInboundRules } = require("./rules");
 const app = express();
 app.use(express.json());
 
+app.use((req, _res, next) => {
+  const authenticatedUserId = req.get("x-user-id");
+  req.user = authenticatedUserId ? { id: authenticatedUserId } : null;
+  next();
+});
+
 const configPath = path.join(__dirname, "config", "config.json");
 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
@@ -41,8 +47,22 @@ function buildLeadRow(lead) {
 
 async function logEvent(event) {
   const row = [new Date().toISOString(), event.type, event.lead_id, event.payload_hash];
-  await appendLogRow(config.GOOGLE_SHEETS_ID, row);
+  await appendLogRow(config.GOOGLE_SHEETS_ID, row, { dryRun: config.DRY_RUN, allowFallbackOnError: true });
 }
+
+function ensureUserAccess(req, res, next) {
+  const userId = req.params.userId || req.body.userId;
+
+  if (!req.user || userId !== req.user.id) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  return next();
+}
+
+app.get("/users/:userId/access-check", ensureUserAccess, (_req, res) => {
+  return res.status(200).json({ status: "ok" });
+});
 
 app.post("/webhooks/lead", async (req, res) => {
   try {
@@ -76,7 +96,7 @@ app.post("/webhooks/lead", async (req, res) => {
       consent_timestamp: payload.consent_timestamp || new Date().toISOString()
     };
 
-    await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead));
+    await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead), { dryRun: config.DRY_RUN, allowFallbackOnError: true });
     await logEvent({ type: "lead_created", lead_id: lead.lead_id, payload_hash: payloadHash });
 
     if (lead.whatsapp_opt_in === "YES") {
@@ -93,6 +113,13 @@ app.post("/webhooks/lead", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
+});
+
+app.get("/webhooks/lead", (_req, res) => {
+  return res.status(405).json({
+    error: "Method Not Allowed",
+    message: "Use POST /webhooks/lead with a JSON payload."
+  });
 });
 
 app.post("/webhooks/inbound", async (req, res) => {
@@ -131,11 +158,40 @@ app.post("/webhooks/inbound", async (req, res) => {
   }
 });
 
+app.get("/webhooks/inbound", (_req, res) => {
+  return res.status(405).json({
+    error: "Method Not Allowed",
+    message: "Use POST /webhooks/inbound with a JSON payload."
+  });
+});
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    service: "symmetra-sys-automation",
+    status: "ok",
+    endpoints: ["/health", "/webhooks/lead", "/webhooks/inbound", "/users/:userId/access-check"]
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Symmetra Systems automation listening on ${port}`);
+app.use((req, res) => {
+  return res.status(404).json({
+    error: "Not Found",
+    method: req.method,
+    path: req.originalUrl,
+    hint: "Check GET / for available endpoints."
+  });
 });
+
+const port = process.env.PORT || 3000;
+
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Symmetra Systems automation listening on ${port}`);
+  });
+}
+
+module.exports = { app, ensureUserAccess };
