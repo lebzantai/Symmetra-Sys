@@ -59,7 +59,6 @@ function loadConfig() {
 }
 
 const config = loadConfig();
-
 const idempotencyCache = new Set();
 
 function buildLeadRow(lead) {
@@ -101,11 +100,17 @@ function ensureUserAccess(req, res, next) {
   return next();
 }
 
-app.get("/users/:userId/access-check", ensureUserAccess, (_req, res) => {
-  return res.status(200).json({ status: "ok" });
-});
+function withApiAliases(route) {
+  return [route, `/api${route}`];
+}
 
-app.post("/webhooks/lead", async (req, res) => {
+for (const route of withApiAliases("/users/:userId/access-check")) {
+  app.get(route, ensureUserAccess, (_req, res) => {
+    return res.status(200).json({ status: "ok" });
+  });
+}
+
+async function handleLeadWebhook(req, res) {
   try {
     const payload = req.body;
     const payloadHash = hashPayload(payload);
@@ -154,16 +159,19 @@ app.post("/webhooks/lead", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-});
+}
 
-app.get("/webhooks/lead", (_req, res) => {
-  return res.status(405).json({
-    error: "Method Not Allowed",
-    message: "Use POST /webhooks/lead with a JSON payload."
+for (const route of withApiAliases("/webhooks/lead")) {
+  app.post(route, handleLeadWebhook);
+  app.get(route, (_req, res) => {
+    return res.status(405).json({
+      error: "Method Not Allowed",
+      message: "Use POST /webhooks/lead with a JSON payload."
+    });
   });
-});
+}
 
-app.post("/webhooks/inbound", async (req, res) => {
+async function handleInboundWebhook(req, res) {
   try {
     const { lead_id, message } = req.body;
     const result = applyInboundRules(message, { status: "CONTACTED" }, config);
@@ -197,26 +205,34 @@ app.post("/webhooks/inbound", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
-});
+}
 
-app.get("/webhooks/inbound", (_req, res) => {
-  return res.status(405).json({
-    error: "Method Not Allowed",
-    message: "Use POST /webhooks/inbound with a JSON payload."
+for (const route of withApiAliases("/webhooks/inbound")) {
+  app.post(route, handleInboundWebhook);
+  app.get(route, (_req, res) => {
+    return res.status(405).json({
+      error: "Method Not Allowed",
+      message: "Use POST /webhooks/inbound with a JSON payload."
+    });
   });
-});
+}
 
-app.get("/", (_req, res) => {
-  res.status(200).json({
+function sendServiceMetadata(res) {
+  return res.status(200).json({
     service: "symmetra-sys-automation",
     status: "ok",
     endpoints: ["/health", "/webhooks/lead", "/webhooks/inbound", "/users/:userId/access-check"]
   });
-});
+}
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
-});
+app.get("/", (_req, res) => sendServiceMetadata(res));
+app.get("/api", (_req, res) => sendServiceMetadata(res));
+
+for (const route of withApiAliases("/health")) {
+  app.get(route, (_req, res) => {
+    res.json({ status: "ok" });
+  });
+}
 
 app.use((req, res) => {
   return res.status(404).json({

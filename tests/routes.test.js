@@ -34,3 +34,21 @@ test("unknown routes return JSON 404 payload", async () => {
   assert.equal(body.method, "GET");
   assert.equal(body.path, "/does-not-exist");
 });
+
+
+test("GET /api/webhooks/lead returns method guidance", async () => {
+  const response = await fetch(`${baseUrl}/api/webhooks/lead`);
+  assert.equal(response.status, 405);
+
+  const body = await response.json();
+  assert.equal(body.error, "Method Not Allowed");
+  assert.equal(body.message, "Use POST /webhooks/lead with a JSON payload.");
+});
+
+test("GET /api/health returns ok", async () => {
+  const response = await fetch(`${baseUrl}/api/health`);
+  assert.equal(response.status, 200);
+
+  const body = await response.json();
+  assert.equal(body.status, "ok");
+});
