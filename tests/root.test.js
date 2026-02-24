@@ -30,3 +30,13 @@ test("GET / returns service metadata instead of Cannot GET", async () => {
     "/users/:userId/access-check"
   ]);
 });
+
+
+test("GET /api returns service metadata for serverless-prefixed routes", async () => {
+  const response = await fetch(`${baseUrl}/api`);
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.service, "symmetra-sys-automation");
+  assert.equal(body.status, "ok");
+});
