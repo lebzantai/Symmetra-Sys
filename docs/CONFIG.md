@@ -59,3 +59,14 @@ This document walks through configuring Google Sheets, WhatsApp, and the automat
 - `CADENCE` controls follow-up timing. Edit `offsetDays` and times to match your SLA.
 - `MESSAGES` holds WhatsApp templates and is POPIA-friendly.
 - `DRY_RUN=true` prevents real WhatsApp messages.
+
+
+## Serverless routing (avoid "Cannot GET")
+- This repo includes `api/index.js` as the serverless entrypoint and `vercel.json` rewrite rules.
+- All paths (`/`, `/health`, `/webhooks/lead`, `/webhooks/inbound`) are rewritten to the Express app.
+- After deploy, test:
+  ```bash
+  curl -i https://<your-domain>/
+  curl -i https://<your-domain>/health
+  ```
+
