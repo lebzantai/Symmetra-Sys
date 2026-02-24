@@ -16,17 +16,11 @@ test.after(() => {
   server.close();
 });
 
-test("GET / returns service metadata instead of Cannot GET", async () => {
+test("GET / returns website HTML instead of Cannot GET", async () => {
   const response = await fetch(`${baseUrl}/`);
 
   assert.equal(response.status, 200);
-  const body = await response.json();
-  assert.equal(body.service, "symmetra-sys-automation");
-  assert.equal(body.status, "ok");
-  assert.deepEqual(body.endpoints, [
-    "/health",
-    "/webhooks/lead",
-    "/webhooks/inbound",
-    "/users/:userId/access-check"
-  ]);
+  const body = await response.text();
+  assert.match(body, /<title>Symmetra Systems \| Gym Automation<\/title>/);
+  assert.match(body, /Symmetra Gym Lead Capture/);
 });

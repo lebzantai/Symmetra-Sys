@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symmetra Systems | Gym Automation</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #0b1020; color: #f3f5ff; }
+    .container { max-width: 860px; margin: 0 auto; padding: 32px 20px; }
+    .card { background: #121a33; border: 1px solid #273057; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    h1 { margin: 0; }
+    p { color: #c8d0ff; }
+    label { display: block; margin: 12px 0 6px; }
+    input, select, textarea, button { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #40508f; }
+    button { background: #4d6bff; color: white; border: 0; font-weight: 700; cursor: pointer; margin-top: 14px; }
+    .ok { color: #98f5b3; }
+    .err { color: #ff9fa8; }
+    .meta { font-size: 12px; opacity: .8; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Symmetra Gym Lead Capture</h1>
+    <p>Website mode enabled. Use this page to submit leads directly into the automation flow.</p>
+
+    <div class="card">
+      <h2>New Lead</h2>
+      <form id="leadForm">
+        <label>Full Name</label>
+        <input name="full_name" required />
+
+        <label>Phone</label>
+        <input name="phone" required placeholder="e.g. +27821234567" />
+
+        <label>Source</label>
+        <select name="source">
+          <option>WEBSITE</option>
+          <option>WALKIN</option>
+          <option>WHATSAPP</option>
+          <option>INSTAGRAM</option>
+        </select>
+
+        <label>Package Interest</label>
+        <input name="package_interest" placeholder="12M / 6M / M2M" />
+
+        <label>Notes</label>
+        <textarea name="notes" rows="3"></textarea>
+
+        <button type="submit">Submit Lead</button>
+      </form>
+      <div id="status" class="meta"></div>
+    </div>
+
+    <div class="card">
+      <h2>API Health</h2>
+      <p id="health">Checking...</p>
+    </div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const healthEl = document.getElementById("health");
+
+    fetch("/api/health")
+      .then((r) => r.json())
+      .then((data) => { healthEl.textContent = `API status: ${data.status}`; healthEl.className = "ok"; })
+      .catch(() => { healthEl.textContent = "API status check failed"; healthEl.className = "err"; });
+
+    document.getElementById("leadForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = new FormData(event.target);
+      const payload = Object.fromEntries(form.entries());
+      payload.whatsapp_opt_in = "YES";
+
+      statusEl.textContent = "Submitting...";
+      statusEl.className = "meta";
+
+      try {
+        const response = await fetch("/api/webhooks/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Request failed");
+
+        statusEl.textContent = `Lead created successfully. lead_id=${body.lead_id}`;
+        statusEl.className = "ok";
+        event.target.reset();
+      } catch (error) {
+        statusEl.textContent = `Error: ${error.message}`;
+        statusEl.className = "err";
+      }
+    });
+  </script>
+</body>
+</html>

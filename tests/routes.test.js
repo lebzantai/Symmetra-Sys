@@ -25,12 +25,20 @@ test("GET /webhooks/lead returns method guidance instead of Cannot GET", async (
   assert.equal(body.message, "Use POST /webhooks/lead with a JSON payload.");
 });
 
-test("unknown routes return JSON 404 payload", async () => {
-  const response = await fetch(`${baseUrl}/does-not-exist`);
+test("unknown API routes return JSON 404 payload", async () => {
+  const response = await fetch(`${baseUrl}/api/does-not-exist`);
   assert.equal(response.status, 404);
 
   const body = await response.json();
   assert.equal(body.error, "Not Found");
   assert.equal(body.method, "GET");
-  assert.equal(body.path, "/does-not-exist");
+  assert.equal(body.path, "/api/does-not-exist");
+});
+
+test("unknown website routes return the website HTML", async () => {
+  const response = await fetch(`${baseUrl}/pricing`);
+  assert.equal(response.status, 200);
+
+  const body = await response.text();
+  assert.match(body, /Symmetra Gym Lead Capture/);
 });

@@ -8,7 +8,10 @@ const { sendWhatsAppMessage } = require("./whatsapp");
 const { applyInboundRules } = require("./rules");
 
 const app = express();
+const publicDir = path.join(__dirname, "..", "public");
+
 app.use(express.json());
+app.use(express.static(publicDir));
 
 app.use((req, _res, next) => {
   const authenticatedUserId = req.get("x-user-id");
@@ -16,9 +19,49 @@ app.use((req, _res, next) => {
   next();
 });
 
-const configPath = path.join(__dirname, "config", "config.json");
-const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+const defaultConfig = {
+  DRY_RUN: true,
+  GOOGLE_SHEETS_ID: "REPLACE_WITH_SHEET_ID",
+  MESSAGES: {
+    instant_reply: "Hi {{name}}, thanks for contacting us.",
+    price_list: "Please contact reception for package pricing.",
+    location: "Please contact reception for location details.",
+    opt_out_confirm: "You are opted out. Reply START to opt back in."
+  }
+};
 
+function loadConfig() {
+  const configPath = process.env.CONFIG_PATH || path.join(__dirname, "config", "config.json");
+
+  try {
+    if (!fs.existsSync(configPath)) {
+      console.warn(`Config file not found at ${configPath}. Falling back to defaults/env.`);
+      return {
+        ...defaultConfig,
+        ...process.env
+      };
+    }
+
+    const raw = fs.readFileSync(configPath, "utf8");
+    const fileConfig = JSON.parse(raw);
+    return {
+      ...defaultConfig,
+      ...fileConfig,
+      MESSAGES: {
+        ...defaultConfig.MESSAGES,
+        ...(fileConfig.MESSAGES || {})
+      }
+    };
+  } catch (error) {
+    console.error("Failed to load config file. Falling back to defaults/env.", error);
+    return {
+      ...defaultConfig,
+      ...process.env
+    };
+  }
+}
+
+const config = loadConfig();
 const idempotencyCache = new Set();
 
 function buildLeadRow(lead) {
@@ -60,121 +103,138 @@ function ensureUserAccess(req, res, next) {
   return next();
 }
 
-app.get("/users/:userId/access-check", ensureUserAccess, (_req, res) => {
-  return res.status(200).json({ status: "ok" });
-});
-
-app.post("/webhooks/lead", async (req, res) => {
-  try {
-    const payload = req.body;
-    const payloadHash = hashPayload(payload);
-
-    if (idempotencyCache.has(payloadHash)) {
-      return res.status(200).json({ status: "duplicate" });
-    }
-    idempotencyCache.add(payloadHash);
-
-    const lead = {
-      lead_id: uuidv4(),
-      created_at: new Date().toISOString(),
-      source: payload.source || "UNKNOWN",
-      full_name: payload.full_name || "",
-      phone_e164: normalizePhoneE164(payload.phone),
-      whatsapp_opt_in: payload.whatsapp_opt_in || "YES",
-      status: "NEW",
-      stage: "HOT",
-      last_contact_at: "",
-      next_action_at: "",
-      assigned_to: payload.assigned_to || "FRONT_DESK",
-      preferred_time: payload.preferred_time || "",
-      notes: payload.notes || "",
-      package_interest: payload.package_interest || "UNKNOWN",
-      visit_datetime: "",
-      outcome: "",
-      last_message_id: "",
-      do_not_contact: "NO",
-      consent_timestamp: payload.consent_timestamp || new Date().toISOString()
-    };
-
-    await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead), { dryRun: config.DRY_RUN, allowFallbackOnError: true });
-    await logEvent({ type: "lead_created", lead_id: lead.lead_id, payload_hash: payloadHash });
-
-    if (lead.whatsapp_opt_in === "YES") {
-      const message = config.MESSAGES.instant_reply.replace("{{name}}", lead.full_name || "there");
-      const response = await sendWhatsAppMessage({
-        config,
-        to: lead.phone_e164,
-        text: message
-      });
-      await logEvent({ type: "whatsapp_sent", lead_id: lead.lead_id, payload_hash: hashPayload(response) });
-    }
-
-    return res.status(200).json({ status: "ok", lead_id: lead.lead_id });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-app.get("/webhooks/lead", (_req, res) => {
-  return res.status(405).json({
-    error: "Method Not Allowed",
-    message: "Use POST /webhooks/lead with a JSON payload."
+function registerRoutes(router) {
+  router.get("/users/:userId/access-check", ensureUserAccess, (_req, res) => {
+    return res.status(200).json({ status: "ok" });
   });
-});
 
-app.post("/webhooks/inbound", async (req, res) => {
-  try {
-    const { lead_id, message } = req.body;
-    const result = applyInboundRules(message, { status: "CONTACTED" }, config);
-    await logEvent({ type: "inbound_message", lead_id, payload_hash: hashPayload(req.body) });
+  router.post("/webhooks/lead", async (req, res) => {
+    try {
+      const payload = req.body;
+      const payloadHash = hashPayload(payload);
 
-    if (result.tag === "price_request") {
-      await sendWhatsAppMessage({
-        config,
-        to: req.body.phone,
-        text: config.MESSAGES.price_list
-      });
+      if (idempotencyCache.has(payloadHash)) {
+        return res.status(200).json({ status: "duplicate" });
+      }
+      idempotencyCache.add(payloadHash);
+
+      const lead = {
+        lead_id: uuidv4(),
+        created_at: new Date().toISOString(),
+        source: payload.source || "UNKNOWN",
+        full_name: payload.full_name || "",
+        phone_e164: normalizePhoneE164(payload.phone),
+        whatsapp_opt_in: payload.whatsapp_opt_in || "YES",
+        status: "NEW",
+        stage: "HOT",
+        last_contact_at: "",
+        next_action_at: "",
+        assigned_to: payload.assigned_to || "FRONT_DESK",
+        preferred_time: payload.preferred_time || "",
+        notes: payload.notes || "",
+        package_interest: payload.package_interest || "UNKNOWN",
+        visit_datetime: "",
+        outcome: "",
+        last_message_id: "",
+        do_not_contact: "NO",
+        consent_timestamp: payload.consent_timestamp || new Date().toISOString()
+      };
+
+      await appendLeadRow(config.GOOGLE_SHEETS_ID, buildLeadRow(lead), { dryRun: config.DRY_RUN, allowFallbackOnError: true });
+      await logEvent({ type: "lead_created", lead_id: lead.lead_id, payload_hash: payloadHash });
+
+      if (lead.whatsapp_opt_in === "YES") {
+        const message = config.MESSAGES.instant_reply.replace("{{name}}", lead.full_name || "there");
+        const response = await sendWhatsAppMessage({
+          config,
+          to: lead.phone_e164,
+          text: message
+        });
+        await logEvent({ type: "whatsapp_sent", lead_id: lead.lead_id, payload_hash: hashPayload(response) });
+      }
+
+      return res.status(200).json({ status: "ok", lead_id: lead.lead_id });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
     }
-
-    if (result.tag === "location_request") {
-      await sendWhatsAppMessage({
-        config,
-        to: req.body.phone,
-        text: config.MESSAGES.location
-      });
-    }
-
-    if (result.tag === "optout") {
-      await sendWhatsAppMessage({
-        config,
-        to: req.body.phone,
-        text: config.MESSAGES.opt_out_confirm
-      });
-    }
-
-    return res.status(200).json({ status: "ok", updates: result.updates, tag: result.tag });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-});
-
-app.get("/webhooks/inbound", (_req, res) => {
-  return res.status(405).json({
-    error: "Method Not Allowed",
-    message: "Use POST /webhooks/inbound with a JSON payload."
   });
+
+  router.get("/webhooks/lead", (_req, res) => {
+    return res.status(405).json({
+      error: "Method Not Allowed",
+      message: "Use POST /webhooks/lead with a JSON payload."
+    });
+  });
+
+  router.post("/webhooks/inbound", async (req, res) => {
+    try {
+      const { lead_id, message } = req.body;
+      const result = applyInboundRules(message, { status: "CONTACTED" }, config);
+      await logEvent({ type: "inbound_message", lead_id, payload_hash: hashPayload(req.body) });
+
+      if (result.tag === "price_request") {
+        await sendWhatsAppMessage({
+          config,
+          to: req.body.phone,
+          text: config.MESSAGES.price_list
+        });
+      }
+
+      if (result.tag === "location_request") {
+        await sendWhatsAppMessage({
+          config,
+          to: req.body.phone,
+          text: config.MESSAGES.location
+        });
+      }
+
+      if (result.tag === "optout") {
+        await sendWhatsAppMessage({
+          config,
+          to: req.body.phone,
+          text: config.MESSAGES.opt_out_confirm
+        });
+      }
+
+      return res.status(200).json({ status: "ok", updates: result.updates, tag: result.tag });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.get("/webhooks/inbound", (_req, res) => {
+    return res.status(405).json({
+      error: "Method Not Allowed",
+      message: "Use POST /webhooks/inbound with a JSON payload."
+    });
+  });
+
+  router.get("/health", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+}
+
+registerRoutes(app);
+
+app.get(["/", "/index", "/index.html"], (_req, res) => {
+  return res.sendFile(path.join(publicDir, "index.html"));
 });
 
-app.get("/", (_req, res) => {
-  res.status(200).json({
+const apiRouter = express.Router();
+registerRoutes(apiRouter);
+apiRouter.get("/", (_req, res) => {
+  return res.status(200).json({
     service: "symmetra-sys-automation",
     status: "ok",
-    endpoints: ["/health", "/webhooks/lead", "/webhooks/inbound", "/users/:userId/access-check"]
+    endpoints: ["/api/health", "/api/webhooks/lead", "/api/webhooks/inbound", "/api/users/:userId/access-check"]
   });
 });
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.use("/api", apiRouter);
+app.use("/api/index", apiRouter);
+
+app.get(/^\/(?!api(?:\/|$)|webhooks(?:\/|$)|users(?:\/|$)).*/, (_req, res) => {
+  return res.sendFile(path.join(publicDir, "index.html"));
 });
 
 app.use((req, res) => {
@@ -182,7 +242,7 @@ app.use((req, res) => {
     error: "Not Found",
     method: req.method,
     path: req.originalUrl,
-    hint: "Check GET / for available endpoints."
+    hint: "Check GET / for website UI or GET /api for API endpoints."
   });
 });
 
@@ -194,4 +254,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, ensureUserAccess };
+module.exports = { app, ensureUserAccess, loadConfig };
