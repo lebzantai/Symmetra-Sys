@@ -1,11 +1,26 @@
 const { google } = require("googleapis");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
-const fallbackDir = path.join(process.cwd(), "automation", "runtime");
+function resolveFallbackDir() {
+  if (process.env.RUNTIME_FALLBACK_DIR) {
+    return process.env.RUNTIME_FALLBACK_DIR;
+  }
+
+  const repoRuntimeDir = path.join(process.cwd(), "automation", "runtime");
+  try {
+    fs.mkdirSync(repoRuntimeDir, { recursive: true });
+    return repoRuntimeDir;
+  } catch (_error) {
+    const tmpRuntimeDir = path.join(os.tmpdir(), "symmetra-runtime");
+    fs.mkdirSync(tmpRuntimeDir, { recursive: true });
+    return tmpRuntimeDir;
+  }
+}
 
 function writeFallbackRecord(kind, payload) {
-  fs.mkdirSync(fallbackDir, { recursive: true });
+  const fallbackDir = resolveFallbackDir();
   const filePath = path.join(fallbackDir, `${kind}.jsonl`);
   fs.appendFileSync(filePath, `${JSON.stringify({ ts: new Date().toISOString(), ...payload })}\n`);
 }
@@ -98,5 +113,6 @@ async function appendLogRow(spreadsheetId, values, options = {}) {
 module.exports = {
   appendLeadRow,
   updateLeadRow,
-  appendLogRow
+  appendLogRow,
+  resolveFallbackDir
 };
