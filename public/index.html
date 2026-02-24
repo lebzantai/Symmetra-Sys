@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symmetra Systems Automation</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #0b1220; color: #e5e7eb; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 40px 20px; }
+    .card { background: #121a2b; border: 1px solid #26324d; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    h1 { margin-top: 0; }
+    a { color: #60a5fa; }
+    code { background: #1e293b; padding: 2px 6px; border-radius: 6px; }
+    .ok { color: #34d399; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Symmetra Systems Automation</h1>
+      <p>Website mode is active. This endpoint now serves a browser-friendly homepage instead of a plain JSON payload.</p>
+      <p>Service status: <span id="status" class="ok">Checking...</span></p>
+    </div>
+
+    <div class="card">
+      <h2>Available API endpoints</h2>
+      <ul>
+        <li><code>GET /api</code> — service metadata</li>
+        <li><code>GET /api/health</code> — health check</li>
+        <li><code>POST /api/webhooks/lead</code> — lead intake webhook</li>
+        <li><code>POST /api/webhooks/inbound</code> — inbound WhatsApp webhook</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    fetch('/api/health')
+      .then((response) => response.json())
+      .then((data) => {
+        const status = document.getElementById('status');
+        status.textContent = data.status === 'ok' ? 'Online' : 'Degraded';
+      })
+      .catch(() => {
+        const status = document.getElementById('status');
+        status.textContent = 'Unavailable';
+      });
+  </script>
+</body>
+</html>
