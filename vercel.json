@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api" },
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/webhooks/lead", "destination": "/api/webhooks/lead" },
+    { "source": "/webhooks/inbound", "destination": "/api/webhooks/inbound" },
+    { "source": "/users/:path*", "destination": "/api/users/:path*" }
+  ]
+}
