@@ -59,3 +59,10 @@ This document walks through configuring Google Sheets, WhatsApp, and the automat
 - `CADENCE` controls follow-up timing. Edit `offsetDays` and times to match your SLA.
 - `MESSAGES` holds WhatsApp templates and is POPIA-friendly.
 - `DRY_RUN=true` prevents real WhatsApp messages.
+
+
+## Serverless deployment notes
+- This repo now exposes a serverless entrypoint at `api/index.js` for platforms like Vercel.
+- `vercel.json` rewrites all incoming paths to `/api` so `GET /`, `POST /webhooks/lead`, etc. resolve correctly without manual prefixing.
+- If local filesystem writes are restricted, fallback logs automatically write to OS temp storage (`/tmp/symmetra-runtime`) instead of `automation/runtime`.
+

@@ -3,9 +3,9 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 
-const { appendLeadRow } = require("../src/sheets");
+const { appendLeadRow, resolveFallbackDir } = require("../src/sheets");
 
-const runtimeDir = path.join(process.cwd(), "automation", "runtime");
+const runtimeDir = resolveFallbackDir();
 const leadsLogPath = path.join(runtimeDir, "leads.jsonl");
 
 test("appendLeadRow writes fallback record in dry-run mode", async () => {
