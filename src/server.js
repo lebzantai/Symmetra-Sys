@@ -16,8 +16,49 @@ app.use((req, _res, next) => {
   next();
 });
 
-const configPath = path.join(__dirname, "config", "config.json");
-const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+const defaultConfig = {
+  DRY_RUN: true,
+  GOOGLE_SHEETS_ID: "REPLACE_WITH_SHEET_ID",
+  MESSAGES: {
+    instant_reply: "Hi {{name}}, thanks for contacting us.",
+    price_list: "Please contact reception for package pricing.",
+    location: "Please contact reception for location details.",
+    opt_out_confirm: "You are opted out. Reply START to opt back in."
+  }
+};
+
+function loadConfig() {
+  const configPath = process.env.CONFIG_PATH || path.join(__dirname, "config", "config.json");
+
+  try {
+    if (!fs.existsSync(configPath)) {
+      console.warn(`Config file not found at ${configPath}. Falling back to defaults/env.`);
+      return {
+        ...defaultConfig,
+        ...process.env
+      };
+    }
+
+    const raw = fs.readFileSync(configPath, "utf8");
+    const fileConfig = JSON.parse(raw);
+    return {
+      ...defaultConfig,
+      ...fileConfig,
+      MESSAGES: {
+        ...defaultConfig.MESSAGES,
+        ...(fileConfig.MESSAGES || {})
+      }
+    };
+  } catch (error) {
+    console.error("Failed to load config file. Falling back to defaults/env.", error);
+    return {
+      ...defaultConfig,
+      ...process.env
+    };
+  }
+}
+
+const config = loadConfig();
 
 const idempotencyCache = new Set();
 
@@ -194,4 +235,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { app, ensureUserAccess };
+module.exports = { app, ensureUserAccess, loadConfig };
