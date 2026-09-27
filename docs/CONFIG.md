@@ -59,3 +59,17 @@ This document walks through configuring Google Sheets, WhatsApp, and the automat
 - `CADENCE` controls follow-up timing. Edit `offsetDays` and times to match your SLA.
 - `MESSAGES` holds WhatsApp templates and is POPIA-friendly.
 - `DRY_RUN=true` prevents real WhatsApp messages.
+
+## AI-assisted inbound classification (optional)
+Inbound replies are first tagged by keyword rules in `src/rules.js` (price, location,
+booking, opt-out). Opt-out always stays keyword-based, since it's a compliance rule,
+not a judgment call. Replies that don't match any keyword rule ("generic_reply") can
+optionally be re-classified by [TypeSafe](https://typesafe.ai) before falling back to
+the generic handling, catching phrasing like "how much does it run me" or "can I swing
+by tomorrow" that the regexes miss.
+
+- Set `TYPESAFE_ENABLED: true` in `src/config/config.json` to turn it on.
+- Set the `TYPESAFE_API_KEY` environment variable (never commit it to `config.json`).
+- If the flag is off, the key is missing, the model's confidence is below 0.55, or the
+  request fails for any reason, the code silently falls back to the existing
+  `generic_reply` handling — no behavior change unless you opt in.

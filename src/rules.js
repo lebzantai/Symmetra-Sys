@@ -25,51 +25,54 @@ function getNextActionAt(createdAt, cadence, hoursConfig) {
   return pending;
 }
 
+// Applies the same lead updates a keyword-matched tag would produce. Shared
+// by the regex path below and by the TypeSafe fallback classifier in
+// intent.js, so an AI-derived tag lands on the exact same lead state changes
+// as a keyword-derived one.
+function resolveUpdatesForTag(tag, lead) {
+  if (tag === "booking_request") {
+    return { updates: { status: "BOOKED", stage: "HOT" }, tag };
+  }
+
+  if (tag === "generic_reply" && lead.status === "NEW") {
+    return { updates: { status: "CONTACTED", stage: "WARM" }, tag };
+  }
+
+  return { updates: {}, tag };
+}
+
 function applyInboundRules(messageText, lead, config) {
   const text = messageText.toLowerCase();
-  const response = {
-    updates: {},
-    tag: "generic_reply"
-  };
 
   if (/(stop|unsubscribe)/.test(text)) {
-    response.updates = {
-      do_not_contact: "YES",
-      status: "CLOSED",
-      outcome: "NOT_INTERESTED"
+    return {
+      updates: {
+        do_not_contact: "YES",
+        status: "CLOSED",
+        outcome: "NOT_INTERESTED"
+      },
+      tag: "optout"
     };
-    response.tag = "optout";
-    return response;
   }
 
   if (/price|cost|pricing|fee/.test(text)) {
-    response.tag = "price_request";
-    return response;
+    return resolveUpdatesForTag("price_request", lead);
   }
 
   if (/address|location|where/.test(text)) {
-    response.tag = "location_request";
-    return response;
+    return resolveUpdatesForTag("location_request", lead);
   }
 
   if (/book|visit|tour|come|today|tomorrow/.test(text)) {
-    response.updates = {
-      status: "BOOKED",
-      stage: "HOT"
-    };
-    response.tag = "booking_request";
-    return response;
+    return resolveUpdatesForTag("booking_request", lead);
   }
 
-  if (lead.status === "NEW") {
-    response.updates = { status: "CONTACTED", stage: "WARM" };
-  }
-
-  return response;
+  return resolveUpdatesForTag("generic_reply", lead);
 }
 
 module.exports = {
   buildCadenceSchedule,
   getNextActionAt,
-  applyInboundRules
+  applyInboundRules,
+  resolveUpdatesForTag
 };

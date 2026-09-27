@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require("uuid");
 const { normalizePhoneE164, hashPayload } = require("./utils");
 const { appendLeadRow, appendLogRow } = require("./sheets");
 const { sendWhatsAppMessage } = require("./whatsapp");
-const { applyInboundRules } = require("./rules");
+const { applyInboundRules, resolveUpdatesForTag } = require("./rules");
+const { classifyFallbackIntent } = require("./intent");
 
 const app = express();
 app.use(express.json());
@@ -98,7 +99,16 @@ app.post("/webhooks/lead", async (req, res) => {
 app.post("/webhooks/inbound", async (req, res) => {
   try {
     const { lead_id, message } = req.body;
-    const result = applyInboundRules(message, { status: "CONTACTED" }, config);
+    const lead = { status: "CONTACTED" };
+    let result = applyInboundRules(message, lead, config);
+
+    if (result.tag === "generic_reply") {
+      const aiIntent = await classifyFallbackIntent(message, config);
+      if (aiIntent && aiIntent.tag !== "generic_reply") {
+        result = resolveUpdatesForTag(aiIntent.tag, lead);
+      }
+    }
+
     await logEvent({ type: "inbound_message", lead_id, payload_hash: hashPayload(req.body) });
 
     if (result.tag === "price_request") {
