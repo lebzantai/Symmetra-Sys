@@ -23,7 +23,7 @@
   renderer.setClearColor(0x000000, 0);
 
   var scene = new T.Scene();
-  scene.fog = new T.Fog(0xb9764a, 60, 170);
+  scene.fog = new T.Fog(0x8c6247, 60, 170);
   var camera = new T.PerspectiveCamera(32, 1, 0.5, 400);
 
   /* ---------- helpers ---------- */
@@ -77,10 +77,9 @@
     }
   }, 1, 1);
   var soilTex = canvasTex(512, 512, function (x, w, h) {
-    x.fillStyle = '#6a3f2a'; x.fillRect(0, 0, w, h);
-    for (var j = 0; j < 14; j++) { var g = x.createRadialGradient(rnd() * w, rnd() * h, 0, rnd() * w, rnd() * h, 120 + rnd() * 200); g.addColorStop(0, 'rgba(120,70,44,.18)'); g.addColorStop(1, 'rgba(120,70,44,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); }
+    x.fillStyle = '#563828'; x.fillRect(0, 0, w, h);
     for (var i = 0; i < 14000; i++) {
-      var l = rnd(), r = 92 + l * 60, g2 = 52 + l * 36, b = 32 + l * 22;
+      var l = rnd(), r = 82 + l * 50, g2 = 52 + l * 34, b = 36 + l * 22;
       x.fillStyle = 'rgba(' + (r | 0) + ',' + (g2 | 0) + ',' + (b | 0) + ',' + (.18 + rnd() * .35) + ')';
       var sz = .8 + rnd() * 2.2; x.fillRect(rnd() * w, rnd() * h, sz, sz);
     }
@@ -290,8 +289,8 @@
 
   /* ---------- palette keys ---------- */
   var SKY = [
-    ['#1C1612', '#4A3324', '#B9764A'], // late afternoon on site
-    ['#2E241D', '#7D5A40', '#DDA06C'], // golden hour
+    ['#16120F', '#3A2A20', '#8C6247'], // late afternoon on site
+    ['#28201A', '#6A5040', '#C3936C'], // golden hour
     ['#0F0C0A', '#2A1D16', '#7E3E20']  // dusk
   ];
   function skyAt(t1, t2) {
