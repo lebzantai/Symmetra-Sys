@@ -96,7 +96,7 @@
   /* ---------- scroll-linked motion ---------- */
   var hdr = $('#hdr'), build = $('#build'), caps = $$('[data-cap]'), nav = $('#stepsNav'), navItems = $$('div', nav), cue = $('#cue');
   var pics = $$('.pic img'), band = $('#band'), frame = $('.band .frame'), bandImg = $('.band .frame img'), bandWords = $('.band .words');
-  var track = $('#track'), trackItems = $$('li', track);
+  var track = $('#track'), trackItems = $$('li', track), swoosh = $('#swoosh');
   var lastY = 0, curStage = 0, scene = window.KPN_SCENE || { target: 0 };
 
   function onScroll(y) {
@@ -148,6 +148,13 @@
     bandImg.style.setProperty('--bs', (1.25 - e * .2).toFixed(3));
     bandWords.style.opacity = clamp((bp - .2) / .3, 0, 1).toFixed(3);
     bandWords.style.transform = 'translateY(' + ((1 - clamp((bp - .2) / .4, 0, 1)) * 40).toFixed(1) + 'px)';
+
+    // brand swoosh above the footer wordmark draws itself
+    if (swoosh) {
+      var fr = swoosh.getBoundingClientRect();
+      var fp = reduce ? 1 : clamp((H - fr.top) / (H * .55), 0, 1);
+      swoosh.style.setProperty('--sd', (1 - (1 - Math.pow(1 - fp, 3))).toFixed(4));
+    }
 
     // process line
     var tr = track.getBoundingClientRect();
