@@ -112,6 +112,8 @@
   }
 
   /* ---------- scroll-linked motion ---------- */
+  var fab = $('#fab'), contact = $('#contact'), fabReady = false;
+  setTimeout(function () { fabReady = true; onScroll(y()); }, 1800);
   var hdr = $('#hdr'), build = $('#build'), caps = $$('[data-cap]'), nav = $('#stepsNav'), navItems = $$('div', nav), cue = $('#cue');
   var pics = $$('.pic img'), band = $('#band'), frame = $('.band .frame'), bandImg = $('.band .frame img'), bandWords = $('.band .words');
   var track = $('#track'), trackItems = $$('li', track), swoosh = $('#swoosh');
@@ -124,6 +126,13 @@
     if (!doc.classList.contains('menu-open')) hdr.classList.toggle('away', y > lastY + 2 && y > H * 1.2);
     if (y < lastY - 2) hdr.classList.remove('away');
     lastY = y;
+
+    // floating WhatsApp shows once the hero intro has settled, hides over the form
+    if (fab) {
+      var cr = contact.getBoundingClientRect();
+      var overForm = cr.top < H * .6 && cr.bottom > H * .4;
+      fab.classList.toggle('show', fabReady && !overForm);
+    }
 
     // hero build progress
     var bt = build.offsetTop, bh = build.offsetHeight - H;
@@ -192,16 +201,6 @@
   addEventListener('resize', function () { onScroll(y()); });
   onScroll(y());
   if (window.KPN_SCENE) scene = window.KPN_SCENE;
-
-  /* ---------- copy buttons ---------- */
-  $$('[data-copy]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var txt = b.getAttribute('data-copy');
-      function done() { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1600); }
-      function sel() { var r = document.createRange(); r.selectNodeContents(b.parentNode.querySelector('strong')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
-      try { navigator.clipboard.writeText(txt).then(done, sel); } catch (e) { sel(); }
-    });
-  });
 
   /* ---------- quote form to WhatsApp ---------- */
   var f = $('#qf'), send = $('#q-send');
