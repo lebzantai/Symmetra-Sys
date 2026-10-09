@@ -293,9 +293,19 @@
     ['#28201A', '#6A5040', '#C3936C'], // golden hour
     ['#0F0C0A', '#2A1D16', '#7E3E20']  // dusk
   ];
+  var SKY_L = [ // white version: bright Highveld daylight into a soft sunset
+    ['#EFEAE4', '#E6DACD', '#CDB096'],
+    ['#F4F0EB', '#EBDFD1', '#DABC9C'],
+    ['#E2D5C8', '#D2AE90', '#B97D57']
+  ];
+  var tm = document.documentElement.getAttribute('data-kpn') === 'light' ? 1 : 0;
   function skyAt(t1, t2) {
     var out = [];
-    for (var i = 0; i < 3; i++) out.push('#' + mixHex(SKY[0][i], SKY[1][i], t1).lerp(C(SKY[2][i]), t2).getHexString());
+    for (var i = 0; i < 3; i++) {
+      var d = mixHex(SKY[0][i], SKY[1][i], t1).lerp(C(SKY[2][i]), t2);
+      var l = mixHex(SKY_L[0][i], SKY_L[1][i], t1).lerp(C(SKY_L[2][i]), t2);
+      out.push('#' + d.lerp(l, tm).getHexString());
+    }
     return out;
   }
 
@@ -337,6 +347,8 @@
     var k = 1 - Math.pow(.001, dt / 1000 * (reduce ? 50 : 2.6)); // frame-rate independent easing
     p += (api.target - p) * k;
     mx += (tmx - mx) * .05; my += (tmy - my) * .05;
+    var lt = document.documentElement.getAttribute('data-kpn') === 'light' ? 1 : 0;
+    tm += (lt - tm) * (reduce ? 1 : Math.min(1, dt / 450));
 
     var draw = Math.max(sm(intro, 0, 1), sm(p, 0, .16));
     var rise1 = sm(p, .19, .34), rise2 = sm(p, .32, .46);
@@ -362,12 +374,12 @@
     sky.style.setProperty('--sk1', sk[0]); sky.style.setProperty('--sk2', sk[1]); sky.style.setProperty('--sk3', sk[2]);
     sky.style.setProperty('--glow', 'rgba(255,128,48,' + (.1 + dusk * .2).toFixed(3) + ')');
     scene.fog.color.set(sk[2]);
-    sun.intensity = lerp(1.9, 2.4, solid) * (1 - dusk * .9);
+    sun.intensity = lerp(1.9, 2.4, solid) * (1 - dusk * .9 * (1 - tm * .45));
     sun.color.copy(mixHex('#ffd3a1', '#ff9a5a', dusk));
-    hemi.intensity = .5 * (1 - dusk * .65) + .05;
+    hemi.intensity = (.5 + tm * .35) * (1 - dusk * .65 * (1 - tm * .5)) + .05;
     gnd.material.color.copy(mixHex('#ffffff', '#6a5a50', dusk));
     hemi.color.copy(mixHex('#f3cfa3', '#8a6a58', dusk));
-    renderer.toneMappingExposure = 1.0 - dusk * .14;
+    renderer.toneMappingExposure = 1.0 + tm * .12 - dusk * .14 * (1 - tm * .4);
     M.glass.emissiveIntensity = dusk * 1.15;
     M.glass.envMapIntensity = 1.9 - dusk * 1.3;
     M.strip.opacity = dusk;

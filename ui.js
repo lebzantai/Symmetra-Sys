@@ -24,6 +24,24 @@
     });
   });
 
+  /* ---------- black / white switch ---------- */
+  var tg = $('#tg'), meta = document.querySelector('meta[name="theme-color"]');
+  function syncTheme() {
+    var light = doc.getAttribute('data-kpn') === 'light';
+    $$('span', tg).forEach(function (s) { s.classList.toggle('on', (s.getAttribute('data-v') === 'light') === light); });
+    tg.setAttribute('aria-pressed', String(light));
+    if (meta) meta.setAttribute('content', light ? '#FFFFFF' : '#151311');
+  }
+  tg.addEventListener('click', function () {
+    var light = doc.getAttribute('data-kpn') !== 'light';
+    doc.classList.add('theming');
+    if (light) doc.setAttribute('data-kpn', 'light'); else doc.removeAttribute('data-kpn');
+    try { localStorage.setItem('kpn-theme', light ? 'light' : 'dark'); } catch (e) {}
+    syncTheme();
+    setTimeout(function () { doc.classList.remove('theming'); }, 700);
+  });
+  syncTheme();
+
   /* ---------- menu ---------- */
   var menuBtn = $('#menuBtn'), sheet = $('#sheet');
   function closeMenu() { doc.classList.remove('menu-open'); menuBtn.setAttribute('aria-expanded', 'false'); sheet.setAttribute('aria-hidden', 'true'); if (lenis) lenis.start(); }
